@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Menu } from "lucide-react";
+import { Logo } from "@/components/Logo";
 import { Sidebar } from "@/components/admin/Sidebar";
 import { Topbar } from "@/components/admin/Topbar";
 import { useStore } from "lib/store";
@@ -34,7 +35,7 @@ export function AdminShell({ title, children }: { title: string; children: React
           <button type="button" onClick={() => setMenuOpen(true)} className="flex h-10 w-10 items-center justify-center">
             <Menu size={18} />
           </button>
-          <span className="text-sm font-semibold">OLT</span>
+          <Logo compact />
         </div>
         <Topbar title={title} />
         <div className="flex-1 overflow-y-auto p-6">{children}</div>
