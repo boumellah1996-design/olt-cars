@@ -7,8 +7,8 @@ const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 const cairo = Cairo({ subsets: ["arabic", "latin"], variable: "--font-cairo" });
 
 export const metadata: Metadata = {
-  title: "OLT Location — Location de voitures",
-  description: "Agence de location de véhicules en Algérie. Réservation, flotte et gestion.",
+  title: "OLT Cars | تأجير السيارات في الجزائر",
+  description: "أفضل خدمات تأجير السيارات عبر موقع OLT Cars - استأجر سيارتك الآن بكل سهولة.",
   icons: {
     icon: "/olt-logo.png",
     apple: "/olt-logo.png",
