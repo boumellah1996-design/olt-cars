@@ -16,7 +16,14 @@ import {
   Users,
   Wallet,
   Wrench,
+  type LucideIcon,
 } from "lucide-react";
+
+type NavLink = {
+  href: string;
+  label: string;
+  icon: LucideIcon;
+};
 import { Logo } from "@/components/Logo";
 import { useI18n } from "lib/i18n";
 import { useStore } from "lib/store";
@@ -28,27 +35,27 @@ export function Sidebar({ open = false, onClose }: { open?: boolean; onClose?: (
   const pathname = usePathname();
   const router = useRouter();
 
-  const operations = [
+  const operations: NavLink[] = [
     { href: "/admin", label: t.admin.dashboard, icon: LayoutDashboard },
     { href: "/admin/reservations", label: t.admin.reservations, icon: CalendarDays },
     { href: "/admin/planning", label: t.admin.planning, icon: CalendarDays },
     { href: "/admin/rentals", label: t.admin.rentals, icon: ArrowLeftRight },
     { href: "/admin/clients", label: t.admin.clients, icon: Users },
   ];
-  const fleet = [
+  const fleet: NavLink[] = [
     { href: "/admin/vehicles", label: t.admin.vehicles, icon: Car },
     { href: "/admin/maintenance", label: t.admin.maintenance, icon: Wrench },
     { href: "/admin/documents", label: t.admin.documents, icon: FileText },
     { href: "/admin/incidents", label: t.admin.incidents, icon: AlertTriangle },
     { href: "/admin/gps", label: t.admin.gps, icon: MapPinned },
   ];
-  const finance = [
+  const finance: NavLink[] = [
     { href: "/admin/payments", label: t.admin.payments, icon: Banknote },
     { href: "/admin/expenses", label: t.admin.expenses, icon: Receipt },
     { href: "/admin/cash", label: t.admin.cash, icon: Wallet },
   ];
 
-  function section(title: string, items: typeof operations) {
+  function section(title: string, items: NavLink[]) {
     return (
       <div className="mb-6">
         <p className="mb-2 px-3 text-[11px] font-semibold uppercase tracking-[0.16em] text-zinc-500">{title}</p>
