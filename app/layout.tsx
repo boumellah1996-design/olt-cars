@@ -1,12 +1,14 @@
 import type { Metadata } from "next";
 import { Cairo, Inter } from "next/font/google";
 import { Providers } from "@/components/providers";
+import { SITE_URL } from "lib/site";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 const cairo = Cairo({ subsets: ["arabic", "latin"], variable: "--font-cairo" });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
   title: "OLT Cars | تأجير السيارات في الجزائر",
   description: "أفضل خدمات تأجير السيارات عبر موقع OLT Cars - استأجر سيارتك الآن بكل سهولة.",
   icons: {
