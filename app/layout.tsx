@@ -12,8 +12,12 @@ export const metadata: Metadata = {
   title: "OLT Cars | تأجير السيارات في الجزائر",
   description: "أفضل خدمات تأجير السيارات عبر موقع OLT Cars - استأجر سيارتك الآن بكل سهولة.",
   icons: {
-    icon: "/olt-logo.png",
-    apple: "/olt-logo.png",
+    icon: [
+      { url: "/favicon.ico", sizes: "48x48", type: "image/x-icon" },
+      { url: "/icon-192.png", sizes: "192x192", type: "image/png" },
+    ],
+    shortcut: "/favicon.ico",
+    apple: [{ url: "/apple-icon.png", sizes: "180x180", type: "image/png" }],
   },
 };
 
