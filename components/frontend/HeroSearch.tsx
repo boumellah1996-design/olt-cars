@@ -2,7 +2,8 @@
 
 import { useRouter } from "next/navigation";
 import { FormEvent, useMemo, useState } from "react";
-import { Building2, CalendarDays, MapPin, Plane, Search, Truck } from "lucide-react";
+import { Building2, MapPin, Plane, Search, Truck } from "lucide-react";
+import { DateRangePicker } from "@/components/frontend/DateRangePicker";
 import { AGENCIES, AIRPORTS } from "lib/data";
 import { useI18n } from "lib/i18n";
 import type { Locale, PickupType } from "lib/types";
@@ -67,7 +68,7 @@ export function HeroSearch({ compact = false }: { compact?: boolean }) {
     <form
       onSubmit={onSubmit}
       className={cn(
-        "rounded-[28px] bg-white p-4 shadow-card dark:bg-zinc-900 sm:p-5",
+        "relative overflow-visible rounded-[28px] bg-white p-4 shadow-card dark:bg-zinc-900 sm:p-5",
         compact ? "mx-auto max-w-6xl" : "mx-auto max-w-5xl",
       )}
     >
@@ -98,7 +99,7 @@ export function HeroSearch({ compact = false }: { compact?: boolean }) {
         {pickupType === "airport" ? t.hero.airportNote : pickupType === "delivery" ? t.hero.deliveryNote : t.hero.hint}
       </p>
 
-      <div className="grid gap-3 lg:grid-cols-[1.2fr_1fr_1fr_auto]">
+      <div className="grid gap-3 lg:grid-cols-[1.2fr_minmax(0,2fr)_auto]">
         <label className="block">
           <span className="mb-1.5 flex items-center gap-1 text-[11px] font-semibold uppercase tracking-wide text-zinc-500">
             <MapPin size={12} /> {t.hero.pickupReturn}
@@ -113,28 +114,14 @@ export function HeroSearch({ compact = false }: { compact?: boolean }) {
             ))}
           </select>
         </label>
-        <label className="block">
-          <span className="mb-1.5 flex items-center gap-1 text-[11px] font-semibold uppercase tracking-wide text-zinc-500">
-            <CalendarDays size={12} /> {t.hero.start}
-          </span>
-          <input
-            type="datetime-local"
-            value={startAt}
-            onChange={(e) => setStartAt(e.target.value)}
-            className="h-12 w-full rounded-full border border-zinc-200 bg-white px-4 text-sm dark:border-zinc-700 dark:bg-zinc-950"
-          />
-        </label>
-        <label className="block">
-          <span className="mb-1.5 flex items-center gap-1 text-[11px] font-semibold uppercase tracking-wide text-zinc-500">
-            <CalendarDays size={12} /> {t.hero.end}
-          </span>
-          <input
-            type="datetime-local"
-            value={endAt}
-            onChange={(e) => setEndAt(e.target.value)}
-            className="h-12 w-full rounded-full border border-zinc-200 bg-white px-4 text-sm dark:border-zinc-700 dark:bg-zinc-950"
-          />
-        </label>
+        <DateRangePicker
+          startAt={startAt}
+          endAt={endAt}
+          onChange={(start, end) => {
+            setStartAt(start);
+            setEndAt(end);
+          }}
+        />
         <button
           type="submit"
           className="btn-cta mt-6 flex h-12 items-center justify-center gap-2 px-6 text-sm"
