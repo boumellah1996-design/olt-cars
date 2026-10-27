@@ -1,5 +1,3 @@
-import type { NextRequest } from "next/server";
-
 export type VisitGeo = {
   city: string;
   region: string;
@@ -29,14 +27,16 @@ const SKIP_EXACT = new Set([
   "/robots.txt",
 ]);
 
-export function getRequestIp(request: Request | NextRequest): string {
+export function getRequestIp(request: Request): string {
   const headers = request.headers;
   const candidates = [
     headers.get("x-forwarded-for")?.split(",")[0],
     headers.get("x-real-ip"),
     headers.get("x-vercel-forwarded-for")?.split(",")[0],
     headers.get("cf-connecting-ip"),
-    "ip" in request ? request.ip : undefined,
+    "ip" in request && typeof (request as Request & { ip?: string }).ip === "string"
+      ? (request as Request & { ip?: string }).ip
+      : undefined,
   ];
 
   for (const candidate of candidates) {
@@ -70,7 +70,7 @@ export function shouldLogPath(pathname: string): boolean {
   return true;
 }
 
-export function buildVisitLog(request: Request | NextRequest): VisitLog {
+export function buildVisitLog(request: Request): VisitLog {
   const url = new URL(request.url);
   return {
     id: `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`,

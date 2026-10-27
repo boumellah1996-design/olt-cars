@@ -55,7 +55,7 @@ export function applyGeoToIp(ip: string, geo: VisitGeo) {
 }
 
 export async function enrichMissingGeo() {
-  const pending = [...new Set(listVisits().filter((item) => !item.geoResolved).map((item) => item.ip))].slice(0, 8);
+  const pending = Array.from(new Set(listVisits().filter((item) => !item.geoResolved).map((item) => item.ip))).slice(0, 8);
   await Promise.all(
     pending.map(async (ip) => {
       applyGeoToIp(ip, await lookupIpGeo(ip));
