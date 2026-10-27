@@ -59,7 +59,11 @@ const dictionary = {
     },
     contact: {
       title: "Contact",
-      address: "Hydra, Alger, Algérie",
+      address: "Hydra, 16035 Alger, Algérie",
+      street: "Hydra",
+      city: "16035 Alger",
+      country: "Algérie",
+      oran: "Oran Centre, Oran",
       phone: "+213 540 17 75 11",
       email: "contact@oltlocation.dz",
       send: "Envoyer",
@@ -79,6 +83,9 @@ const dictionary = {
     footer: {
       rights: "© 2026 OLT Location. Tous droits réservés.",
       admin: "Espace gestion",
+      location: "Agence principale",
+      oran: "Agence Oran",
+      maps: "Voir sur la carte",
     },
     admin: {
       workspace: "Espace de gestion",
@@ -255,7 +262,11 @@ const dictionary = {
     },
     contact: {
       title: "اتصل بنا",
-      address: "حيدرة، الجزائر العاصمة",
+      address: "حيدرة، 16035 الجزائر العاصمة",
+      street: "حيدرة",
+      city: "16035 الجزائر العاصمة",
+      country: "الجزائر",
+      oran: "وسط وهران، وهران",
       phone: "+213 540 17 75 11",
       email: "contact@oltlocation.dz",
       send: "إرسال",
@@ -275,6 +286,9 @@ const dictionary = {
     footer: {
       rights: "© 2026 OLT Location. جميع الحقوق محفوظة.",
       admin: "فضاء الإدارة",
+      location: "الوكالة الرئيسية",
+      oran: "وكالة وهران",
+      maps: "عرض على الخريطة",
     },
     admin: {
       workspace: "فضاء الإدارة",
@@ -451,7 +465,11 @@ const dictionary = {
     },
     contact: {
       title: "Contact",
-      address: "Hydra, Algiers, Algeria",
+      address: "Hydra, 16035 Algiers, Algeria",
+      street: "Hydra",
+      city: "16035 Algiers",
+      country: "Algeria",
+      oran: "Oran Centre, Oran",
       phone: "+213 540 17 75 11",
       email: "contact@oltlocation.dz",
       send: "Send",
@@ -471,6 +489,9 @@ const dictionary = {
     footer: {
       rights: "© 2026 OLT Location. All rights reserved.",
       admin: "Admin space",
+      location: "Main agency",
+      oran: "Oran agency",
+      maps: "View on map",
     },
     admin: {
       workspace: "Management space",
@@ -647,7 +668,11 @@ const dictionary = {
     },
     contact: {
       title: "Contacto",
-      address: "Hydra, Argel, Argelia",
+      address: "Hydra, 16035 Argel, Argelia",
+      street: "Hydra",
+      city: "16035 Argel",
+      country: "Argelia",
+      oran: "Orán Centro, Orán",
       phone: "+213 540 17 75 11",
       email: "contact@oltlocation.dz",
       send: "Enviar",
@@ -667,6 +692,9 @@ const dictionary = {
     footer: {
       rights: "© 2026 OLT Location. Todos los derechos reservados.",
       admin: "Espacio de gestión",
+      location: "Agencia principal",
+      oran: "Agencia de Orán",
+      maps: "Ver en el mapa",
     },
     admin: {
       workspace: "Espacio de gestión",
