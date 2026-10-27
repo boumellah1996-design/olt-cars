@@ -21,12 +21,13 @@ export default function AdminVehiclesPage() {
     <AdminShell title={t.admin.vehicles}>
       <h1 className="mb-5 text-2xl font-black">{t.admin.vehicles}</h1>
       <DataTable
-        headers={[t.table.vehicle, t.table.plate, t.table.category, t.table.price, t.table.status]}
+        headers={[t.table.vehicle, t.table.plate, t.table.category, t.table.price, t.table.price7Days, t.table.status]}
         rows={state.vehicles.map((item) => [
           `${item.brand} ${item.model}`,
           item.plate,
           item.category,
           formatDA(item.pricePerDay, locale),
+          item.price7Days ? formatDA(item.price7Days, locale) : "—",
           <StatusPill key={item.id} label={t.status[item.status]} tone={tone[item.status]} />,
         ])}
       />

@@ -15,7 +15,9 @@ export type Vehicle = {
   fuel: Fuel;
   transmission: Transmission;
   pricePerDay: number;
+  price7Days?: number;
   image: string;
+  images?: string[];
   status: VehicleStatus;
   seats: number;
   year: number;
