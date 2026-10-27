@@ -5,7 +5,7 @@ import { Mail, MapPin, Phone } from "lucide-react";
 import { Logo } from "@/components/Logo";
 import { useI18n } from "lib/i18n";
 
-const MAPS_URL = "https://maps.google.com/?q=Hydra+Alger+Algérie";
+const MAPS_URL = "https://maps.app.goo.gl/Gc5vYic9nr7BxVhTA";
 const PHONE_HREF = "tel:+213540177511";
 const EMAIL_HREF = "mailto:contact@oltlocation.dz";
 
@@ -29,8 +29,6 @@ export function PublicFooter() {
             <p>{t.contact.street}</p>
             <p>{t.contact.city}</p>
             <p>{t.contact.country}</p>
-            <p className="mt-3 font-semibold text-zinc-950 dark:text-white">{t.footer.oran}</p>
-            <p>{t.contact.oran}</p>
             <p className="mt-3 flex items-center gap-2">
               <Phone size={14} className="shrink-0" />
               <a href={PHONE_HREF} className="hover:text-zinc-950 dark:hover:text-white">

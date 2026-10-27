@@ -7,7 +7,7 @@ export const AGENCIES = [
     labelAr: "الوكالة الرئيسية",
     labelEn: "Main Agency",
     labelEs: "Agencia principal",
-    city: "Hydra, Alger",
+    city: "Mohammadia, Alger",
   },
   {
     id: "agence-oran",
