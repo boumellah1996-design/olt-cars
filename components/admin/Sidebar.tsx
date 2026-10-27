@@ -9,6 +9,7 @@ import {
   CalendarDays,
   Car,
   FileText,
+  Activity,
   LayoutDashboard,
   LogOut,
   MapPinned,
@@ -102,6 +103,17 @@ export function Sidebar({ open = false, onClose }: { open?: boolean; onClose?: (
         <p className="mb-2 px-3 text-[11px] font-semibold uppercase tracking-[0.16em] text-zinc-500">
           {t.admin.administration}
         </p>
+        <Link
+          href="/admin/visits"
+          onClick={onClose}
+          className={cn(
+            "mb-1 flex items-center gap-3 rounded-xl px-3 py-2 text-sm transition",
+            pathname === "/admin/visits" ? "bg-white/10 text-white" : "text-zinc-400 hover:bg-white/5 hover:text-white",
+          )}
+        >
+          <Activity size={16} />
+          {t.admin.visits}
+        </Link>
         <button
           type="button"
           onClick={() => {
