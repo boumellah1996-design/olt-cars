@@ -29,7 +29,7 @@ const dictionary = {
       weekdays: ["l", "m", "m", "j", "v", "s", "d"],
       search: "Voir les véhicules",
       hint: "Indiquez vos dates pour vérifier la disponibilité réelle.",
-      airportNote: "Livraison aéroport disponible à Alger et Oran.",
+      airportNote: "Livraison aéroport disponible à Alger.",
       deliveryNote: "Livraison à l'adresse de votre choix dans Alger.",
     },
     catalog: {
@@ -245,7 +245,7 @@ const dictionary = {
       weekdays: ["اث", "ث", "أر", "خ", "ج", "س", "أح"],
       search: "عرض المركبات",
       hint: "حدد التواريخ للتحقق من التوفر الفعلي.",
-      airportNote: "خدمة المطار متوفرة في الجزائر ووهران.",
+      airportNote: "خدمة المطار متوفرة في الجزائر.",
       deliveryNote: "التوصيل إلى العنوان الذي تختاره داخل الجزائر العاصمة.",
     },
     catalog: {
@@ -461,7 +461,7 @@ const dictionary = {
       weekdays: ["M", "T", "W", "T", "F", "S", "S"],
       search: "See vehicles",
       hint: "Enter your dates to check real availability.",
-      airportNote: "Airport delivery is available in Algiers and Oran.",
+      airportNote: "Airport delivery is available in Algiers.",
       deliveryNote: "Home delivery to the address of your choice in Algiers.",
     },
     catalog: {
@@ -677,7 +677,7 @@ const dictionary = {
       weekdays: ["L", "M", "X", "J", "V", "S", "D"],
       search: "Ver vehículos",
       hint: "Indique sus fechas para comprobar la disponibilidad real.",
-      airportNote: "Entrega en aeropuerto disponible en Argel y Orán.",
+      airportNote: "Entrega en aeropuerto disponible en Argel.",
       deliveryNote: "Entrega a domicilio en la dirección que elija en Argel.",
     },
     catalog: {

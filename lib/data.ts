@@ -27,13 +27,6 @@ export const AIRPORTS = [
     labelEn: "Houari Boumediene Airport (ALG)",
     labelEs: "Aeropuerto Houari Boumediene (ALG)",
   },
-  {
-    id: "orn",
-    labelFr: "Aéroport Ahmed Ben Bella (ORN)",
-    labelAr: "مطار أحمد بن بلة (وهران)",
-    labelEn: "Ahmed Ben Bella Airport (ORN)",
-    labelEs: "Aeropuerto Ahmed Ben Bella (ORN)",
-  },
 ];
 
 export const WHATSAPP = "213540177511";
