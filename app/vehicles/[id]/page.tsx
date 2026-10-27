@@ -5,16 +5,26 @@ import { useParams, useSearchParams } from "next/navigation";
 import { Fuel, Gauge, Users } from "lucide-react";
 import { PageBackRow } from "@/components/frontend/BackButton";
 import { PublicLayout } from "@/components/frontend/PublicLayout";
+import { useFleet } from "lib/fleet";
 import { useI18n } from "lib/i18n";
-import { useStore } from "lib/store";
 import { formatDA } from "lib/utils";
 
 export default function VehicleDetailPage() {
   const { id } = useParams<{ id: string }>();
   const params = useSearchParams();
-  const { state } = useStore();
+  const { vehicles, ready } = useFleet();
   const { t, locale } = useI18n();
-  const vehicle = state.vehicles.find((item) => item.id === id);
+  const vehicle = vehicles.find((item) => item.id === id);
+
+  if (!ready) {
+    return (
+      <PublicLayout hideBack>
+        <div className="mx-auto max-w-4xl px-4 py-12">
+          <PageBackRow />
+        </div>
+      </PublicLayout>
+    );
+  }
 
   if (!vehicle) {
     return (

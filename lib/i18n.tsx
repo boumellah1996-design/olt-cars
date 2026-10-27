@@ -179,6 +179,8 @@ const dictionary = {
       save: "Enregistrer",
       close: "Fermer",
       back: "Retour",
+      delete: "Supprimer",
+      deleteConfirm: "Supprimer ce véhicule du catalogue ?",
     },
     login: {
       title: "Connexion administration",
@@ -369,6 +371,8 @@ const dictionary = {
       save: "حفظ",
       close: "إغلاق",
       back: "رجوع",
+      delete: "حذف",
+      deleteConfirm: "حذف هذه المركبة من الكتالوج؟",
     },
     login: {
       title: "دخول الإدارة",
@@ -559,6 +563,8 @@ const dictionary = {
       save: "Save",
       close: "Close",
       back: "Back",
+      delete: "Delete",
+      deleteConfirm: "Delete this vehicle from the catalog?",
     },
     login: {
       title: "Admin sign in",
@@ -749,6 +755,8 @@ const dictionary = {
       save: "Guardar",
       close: "Cerrar",
       back: "Volver",
+      delete: "Eliminar",
+      deleteConfirm: "¿Eliminar este vehículo del catálogo?",
     },
     login: {
       title: "Acceso de administración",

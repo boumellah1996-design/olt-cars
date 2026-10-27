@@ -2,14 +2,12 @@
 
 import { ChangeEvent, FormEvent, useEffect, useState } from "react";
 import { ImagePlus, X } from "lucide-react";
+import { compressImageFile, FALLBACK_VEHICLE_IMAGE } from "lib/images";
 import { useI18n } from "lib/i18n";
 import { useStore } from "lib/store";
 
 const fieldClass =
   "h-11 w-full rounded-full border border-zinc-200 px-4 text-sm dark:border-zinc-700 dark:bg-zinc-950";
-
-const FALLBACK_IMAGE =
-  "https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?auto=format&fit=crop&w=1600&q=80";
 
 export function AddModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { t } = useI18n();
@@ -23,17 +21,11 @@ export function AddModal({ open, onClose }: { open: boolean; onClose: () => void
 
   if (!open) return null;
 
-  function onPhotosChange(event: ChangeEvent<HTMLInputElement>) {
+  async function onPhotosChange(event: ChangeEvent<HTMLInputElement>) {
     const files = Array.from(event.target.files || []).filter((file) => file.type.startsWith("image/"));
     event.target.value = "";
-    files.forEach((file) => {
-      const reader = new FileReader();
-      reader.onload = () => {
-        const url = String(reader.result || "");
-        if (url) setPhotos((prev) => [...prev, url]);
-      };
-      reader.readAsDataURL(file);
-    });
+    const compressed = await Promise.all(files.map((file) => compressImageFile(file)));
+    setPhotos((prev) => [...prev, ...compressed.filter(Boolean)]);
   }
 
   function onSubmit(event: FormEvent<HTMLFormElement>) {
@@ -57,7 +49,7 @@ export function AddModal({ open, onClose }: { open: boolean; onClose: () => void
         transmission: "auto",
         pricePerDay: Number(data.get("price") || 0),
         price7Days: Number(data.get("price7Days") || 0) || undefined,
-        image: uploaded[0] || FALLBACK_IMAGE,
+        image: uploaded[0] || FALLBACK_VEHICLE_IMAGE,
         images: uploaded.length ? uploaded : undefined,
         status: "available",
         seats: 5,

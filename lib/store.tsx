@@ -1,7 +1,8 @@
 "use client";
 
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
-import { initialState } from "./data";
+import { addToFleet, getFleet, normalizeVehicle, updateFleet, useFleet } from "./fleet";
+import { getOps, patchOps, pullRemoteReservations, pushActivity, syncReservationToApi, useOps } from "./ops";
 import type {
   AppState,
   CashMovement,
@@ -14,11 +15,13 @@ import type {
 } from "./types";
 import { daysBetween, isLate, nextCode, sameDay, uid } from "./utils";
 
-const STORAGE_KEY = "olt-app-state";
+export { brandKey, normalizeVehicle, useFleet } from "./fleet";
+
 const AUTH_KEY = "olt-admin-auth";
 
 type StoreContextValue = {
   state: AppState;
+  hydrated: boolean;
   isAdmin: boolean;
   login: (email: string, password: string) => boolean;
   logout: () => void;
@@ -91,56 +94,25 @@ function computeKpis(state: AppState) {
   };
 }
 
-function pushActivity(
-  state: AppState,
-  messageFr: string,
-  messageAr: string,
-  detailFr: string,
-  detailAr: string,
-): AppState {
-  return {
-    ...state,
-    activities: [
-      {
-        id: uid("act"),
-        messageFr,
-        messageAr,
-        detailFr,
-        detailAr,
-        at: new Date().toISOString(),
-      },
-      ...state.activities,
-    ],
-  };
-}
-
 export function StoreProvider({ children }: { children: React.ReactNode }) {
-  const [state, setState] = useState<AppState>(initialState);
+  const ops = useOps();
+  const { vehicles } = useFleet();
+  const liveState = useMemo(() => ({ ...ops, vehicles }), [ops, vehicles]);
   const [isAdmin, setIsAdmin] = useState(false);
   const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
-    if (raw) {
-      try {
-        setState(JSON.parse(raw) as AppState);
-      } catch {
-        setState(initialState);
-      }
-    }
     setIsAdmin(window.localStorage.getItem(AUTH_KEY) === "1");
     setHydrated(true);
+    void pullRemoteReservations();
   }, []);
-
-  useEffect(() => {
-    if (hydrated) window.localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-  }, [state, hydrated]);
 
   const api = useMemo<StoreContextValue>(() => {
     return {
-      state,
+      state: liveState,
+      hydrated,
       isAdmin,
-      kpis: computeKpis(state),
+      kpis: computeKpis(liveState),
       login: (email, password) => {
         const ok =
           email.trim().toLowerCase() === "riadboumellah94@gmail.com" && password === "admin";
@@ -155,143 +127,181 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         setIsAdmin(false);
       },
       createReservation: (payload) => {
-        const vehicle = state.vehicles.find((v) => v.id === payload.vehicleId);
+        const vehicle = getFleet().find((v) => v.id === payload.vehicleId);
         const days = daysBetween(payload.startAt, payload.endAt);
         const reservation: Reservation = {
           id: uid("res"),
-          code: nextCode("OLT-RES", state.reservations.map((r) => r.code)),
+          code: nextCode("OLT-RES", getOps().reservations.map((r) => r.code)),
           ...payload,
           status: "pending",
           total: (vehicle?.pricePerDay ?? 0) * days,
           createdAt: new Date().toISOString(),
         };
-        setState((prev) => {
-          const next = {
-            ...prev,
-            reservations: [reservation, ...prev.reservations],
-            vehicles: prev.vehicles.map((v) =>
-              v.id === payload.vehicleId && v.status === "available" ? { ...v, status: "reserved" as const } : v,
-            ),
-          };
-          return pushActivity(
-            next,
+        updateFleet((current) =>
+          current.map((v) =>
+            v.id === payload.vehicleId && v.status === "available" ? { ...v, status: "reserved" as const } : v,
+          ),
+        );
+        patchOps((prev) =>
+          pushActivity(
+            { ...prev, reservations: [reservation, ...prev.reservations] },
             `Nouvelle réservation ${reservation.code}`,
             `حجز جديد ${reservation.code}`,
             `${payload.clientName} · ${vehicle?.brand} ${vehicle?.model}`,
             `${payload.clientName} · ${vehicle?.brand} ${vehicle?.model}`,
-          );
-        });
+          ),
+        );
+        syncReservationToApi(reservation);
         return reservation;
       },
       confirmReservation: (id) => {
-        setState((prev) => {
-          const res = prev.reservations.find((r) => r.id === id);
-          if (!res) return prev;
-          const next = {
-            ...prev,
-            reservations: prev.reservations.map((r) => (r.id === id ? { ...r, status: "confirmed" as const } : r)),
-          };
-          return pushActivity(next, `Réservation ${res.code} confirmée`, `تم تأكيد الحجز ${res.code}`, res.clientName, res.clientName);
-        });
+        const current = getOps().reservations.find((r) => r.id === id);
+        if (!current) return;
+        const reservation = { ...current, status: "confirmed" as const };
+        patchOps((prev) =>
+          pushActivity(
+            {
+              ...prev,
+              reservations: prev.reservations.map((r) => (r.id === id ? reservation : r)),
+            },
+            `Réservation ${reservation.code} confirmée`,
+            `تم تأكيد الحجز ${reservation.code}`,
+            reservation.clientName,
+            reservation.clientName,
+          ),
+        );
+        syncReservationToApi(reservation, "PATCH");
       },
       cancelReservation: (id) => {
-        setState((prev) => {
-          const res = prev.reservations.find((r) => r.id === id);
-          if (!res) return prev;
-          const stillUsed = prev.reservations.some((r) => r.id !== id && r.vehicleId === res.vehicleId && r.status !== "cancelled");
-          const next = {
-            ...prev,
-            reservations: prev.reservations.map((r) => (r.id === id ? { ...r, status: "cancelled" as const } : r)),
-            vehicles: prev.vehicles.map((v) =>
-              v.id === res.vehicleId && !stillUsed && v.status === "reserved" ? { ...v, status: "available" as const } : v,
-            ),
-          };
-          return pushActivity(next, `Réservation ${res.code} annulée`, `تم إلغاء الحجز ${res.code}`, res.clientName, res.clientName);
-        });
+        const opsState = getOps();
+        const current = opsState.reservations.find((r) => r.id === id);
+        if (!current) return;
+        const stillUsed = opsState.reservations.some(
+          (r) => r.id !== id && r.vehicleId === current.vehicleId && r.status !== "cancelled",
+        );
+        updateFleet((list) =>
+          list.map((v) =>
+            v.id === current.vehicleId && !stillUsed && v.status === "reserved" ? { ...v, status: "available" as const } : v,
+          ),
+        );
+        const reservation = { ...current, status: "cancelled" as const };
+        patchOps((prev) =>
+          pushActivity(
+            {
+              ...prev,
+              reservations: prev.reservations.map((r) => (r.id === id ? reservation : r)),
+            },
+            `Réservation ${reservation.code} annulée`,
+            `تم إلغاء الحجز ${reservation.code}`,
+            reservation.clientName,
+            reservation.clientName,
+          ),
+        );
+        syncReservationToApi(reservation, "PATCH");
       },
       convertReservation: (id) => {
-        setState((prev) => {
-          const res = prev.reservations.find((r) => r.id === id);
-          if (!res) return prev;
-          const rental = {
-            id: uid("loc"),
-            code: nextCode("OLT-LOC", prev.rentals.map((r) => r.code)),
-            reservationId: res.id,
-            clientName: res.clientName,
-            clientPhone: res.clientPhone,
-            vehicleId: res.vehicleId,
-            startAt: res.startAt,
-            endAt: res.endAt,
-            status: "active" as const,
-            total: res.total,
-            paid: 0,
-            createdAt: new Date().toISOString(),
-          };
-          const next = {
-            ...prev,
-            reservations: prev.reservations.map((r) => (r.id === id ? { ...r, status: "converted" as const } : r)),
-            rentals: [rental, ...prev.rentals],
-            vehicles: prev.vehicles.map((v) => (v.id === res.vehicleId ? { ...v, status: "rented" as const } : v)),
-          };
-          return pushActivity(next, `Location ${rental.code} créée`, `تم إنشاء عقد ${rental.code}`, res.clientName, res.clientName);
-        });
+        const current = getOps().reservations.find((r) => r.id === id);
+        if (!current) return;
+        const rental = {
+          id: uid("loc"),
+          code: nextCode("OLT-LOC", getOps().rentals.map((r) => r.code)),
+          reservationId: current.id,
+          clientName: current.clientName,
+          clientPhone: current.clientPhone,
+          vehicleId: current.vehicleId,
+          startAt: current.startAt,
+          endAt: current.endAt,
+          status: "active" as const,
+          total: current.total,
+          paid: 0,
+          createdAt: new Date().toISOString(),
+        };
+        updateFleet((list) => list.map((v) => (v.id === current.vehicleId ? { ...v, status: "rented" as const } : v)));
+        const reservation = { ...current, status: "converted" as const };
+        patchOps((prev) =>
+          pushActivity(
+            {
+              ...prev,
+              reservations: prev.reservations.map((r) => (r.id === id ? reservation : r)),
+              rentals: [rental, ...prev.rentals],
+            },
+            `Location ${rental.code} créée`,
+            `تم إنشاء عقد ${rental.code}`,
+            current.clientName,
+            current.clientName,
+          ),
+        );
+        syncReservationToApi(reservation, "PATCH");
       },
       completeRental: (id) => {
-        setState((prev) => {
-          const rental = prev.rentals.find((r) => r.id === id);
-          if (!rental) return prev;
-          const next = {
-            ...prev,
-            rentals: prev.rentals.map((r) => (r.id === id ? { ...r, status: "completed" as const } : r)),
-            vehicles: prev.vehicles.map((v) => (v.id === rental.vehicleId ? { ...v, status: "available" as const } : v)),
-          };
-          return pushActivity(next, `Location ${rental.code} clôturée`, `تم إغلاق العقد ${rental.code}`, rental.clientName, rental.clientName);
-        });
+        const rental = getOps().rentals.find((r) => r.id === id);
+        if (!rental) return;
+        updateFleet((list) => list.map((v) => (v.id === rental.vehicleId ? { ...v, status: "available" as const } : v)));
+        patchOps((prev) =>
+          pushActivity(
+            {
+              ...prev,
+              rentals: prev.rentals.map((r) => (r.id === id ? { ...r, status: "completed" as const } : r)),
+            },
+            `Location ${rental.code} clôturée`,
+            `تم إغلاق العقد ${rental.code}`,
+            rental.clientName,
+            rental.clientName,
+          ),
+        );
       },
       addPayment: (payload) => {
-        setState((prev) => {
-          const payment: Payment = { ...payload, id: uid("pay") };
-          const next = {
-            ...prev,
-            payments: [payment, ...prev.payments],
-            rentals: prev.rentals.map((r) =>
-              r.id === payload.rentalId ? { ...r, paid: r.paid + payload.amount } : r,
-            ),
-            cash: [
-              { id: uid("cash"), type: "in" as const, amount: payload.amount, at: payload.at, note: payload.note || "Encaissement" },
-              ...prev.cash,
-            ],
-          };
-          return pushActivity(next, `Paiement ${payload.amount} DA`, `تحصيل ${payload.amount} دج`, payload.clientName, payload.clientName);
-        });
+        const payment: Payment = { ...payload, id: uid("pay") };
+        patchOps((prev) =>
+          pushActivity(
+            {
+              ...prev,
+              payments: [payment, ...prev.payments],
+              rentals: prev.rentals.map((r) =>
+                r.id === payload.rentalId ? { ...r, paid: r.paid + payload.amount } : r,
+              ),
+              cash: [
+                {
+                  id: uid("cash"),
+                  type: "in" as const,
+                  amount: payload.amount,
+                  at: payload.at,
+                  note: payload.note || "Encaissement",
+                },
+                ...prev.cash,
+              ],
+            },
+            `Paiement ${payload.amount} DA`,
+            `تحصيل ${payload.amount} دج`,
+            payload.clientName,
+            payload.clientName,
+          ),
+        );
       },
       addClient: (payload) => {
-        setState((prev) => ({
+        patchOps((prev) => ({
           ...prev,
           clients: [{ ...payload, id: uid("cli"), createdAt: new Date().toISOString() }, ...prev.clients],
         }));
       },
       addVehicle: (payload) => {
-        setState((prev) => ({
-          ...prev,
-          vehicles: [{ ...payload, id: uid("veh") }, ...prev.vehicles],
-        }));
+        addToFleet(normalizeVehicle({ ...payload, id: uid("veh"), status: payload.status || "available" }));
       },
       addExpense: (payload) => {
-        setState((prev) => ({
+        patchOps((prev) => ({
           ...prev,
           expenses: [{ ...payload, id: uid("exp") }, ...prev.expenses],
           cash: [{ id: uid("cash"), type: "out", amount: payload.amount, at: payload.at, note: payload.note }, ...prev.cash],
         }));
       },
       addCash: (payload) => {
-        setState((prev) => ({
+        patchOps((prev) => ({
           ...prev,
           cash: [{ ...payload, id: uid("cash") }, ...prev.cash],
         }));
       },
     };
-  }, [state, isAdmin]);
+  }, [liveState, isAdmin, hydrated]);
 
   return <StoreContext.Provider value={api}>{children}</StoreContext.Provider>;
 }
