@@ -29,7 +29,12 @@ export function PublicHeader() {
     <header className="sticky top-0 z-40 bg-white/95 backdrop-blur dark:bg-zinc-950/95">
       <div className="mx-auto flex h-[76px] max-w-6xl items-center justify-between px-4">
         <Link href="/" className="shrink-0">
-          <Logo />
+          <span className="md:hidden">
+            <Logo compact />
+          </span>
+          <span className="hidden md:inline-flex">
+            <Logo />
+          </span>
         </Link>
 
         <nav className="hidden items-center rounded-full bg-zinc-100 p-1 dark:bg-zinc-900 md:flex">
@@ -52,11 +57,11 @@ export function PublicHeader() {
           })}
         </nav>
 
-        <div className="flex items-center gap-2">
+        <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
           <button
             type="button"
             onClick={toggleTheme}
-            className="flex h-10 w-10 items-center justify-center rounded-full border border-zinc-200 text-zinc-700 dark:border-zinc-800 dark:text-zinc-200"
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-zinc-200 text-zinc-700 dark:border-zinc-800 dark:text-zinc-200"
             aria-label={theme === "light" ? t.theme.dark : t.theme.light}
           >
             {theme === "light" ? <Moon size={16} /> : <Sun size={16} />}
@@ -66,17 +71,17 @@ export function PublicHeader() {
             href={MAPS_URL}
             target="_blank"
             rel="noreferrer"
-            className="flex h-10 items-center gap-1.5 rounded-full border border-zinc-200 px-3 text-sm font-medium text-zinc-800 dark:border-zinc-800 dark:text-zinc-100"
+            className="flex h-10 w-10 shrink-0 items-center justify-center gap-1.5 rounded-full border border-zinc-200 text-sm font-medium text-zinc-800 md:w-auto md:px-3 dark:border-zinc-800 dark:text-zinc-100"
             aria-label={t.nav.location}
             title={t.nav.location}
           >
             <MapPin size={16} />
-            <span className="hidden sm:inline">{t.nav.location}</span>
+            <span className="hidden md:inline">{t.nav.location}</span>
           </a>
           <button
             type="button"
             onClick={() => setOpen((v) => !v)}
-            className="flex h-10 w-10 items-center justify-center rounded-full border border-zinc-200 md:hidden dark:border-zinc-800"
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-zinc-200 md:hidden dark:border-zinc-800"
             aria-label="Menu"
           >
             {open ? <X size={16} /> : <Menu size={16} />}
@@ -99,6 +104,16 @@ export function PublicHeader() {
                 {link.label}
               </Link>
             ))}
+            <a
+              href={MAPS_URL}
+              target="_blank"
+              rel="noreferrer"
+              onClick={() => setOpen(false)}
+              className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm text-zinc-700 dark:text-zinc-200"
+            >
+              <MapPin size={16} />
+              {t.nav.location}
+            </a>
           </div>
         </div>
       )}
