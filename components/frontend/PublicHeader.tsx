@@ -2,11 +2,12 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Menu, Moon, Sun, X } from "lucide-react";
+import { MapPin, Menu, Moon, Sun, X } from "lucide-react";
 import { useState } from "react";
 import { LanguageSelector } from "@/components/LanguageSelector";
 import { Logo } from "@/components/Logo";
 import { useI18n } from "lib/i18n";
+import { MAPS_URL } from "lib/site";
 import { useTheme } from "lib/theme";
 import { cn } from "lib/utils";
 
@@ -61,6 +62,17 @@ export function PublicHeader() {
             {theme === "light" ? <Moon size={16} /> : <Sun size={16} />}
           </button>
           <LanguageSelector />
+          <a
+            href={MAPS_URL}
+            target="_blank"
+            rel="noreferrer"
+            className="flex h-10 items-center gap-1.5 rounded-full border border-zinc-200 px-3 text-sm font-medium text-zinc-800 dark:border-zinc-800 dark:text-zinc-100"
+            aria-label={t.nav.location}
+            title={t.nav.location}
+          >
+            <MapPin size={16} />
+            <span className="hidden sm:inline">{t.nav.location}</span>
+          </a>
           <button
             type="button"
             onClick={() => setOpen((v) => !v)}

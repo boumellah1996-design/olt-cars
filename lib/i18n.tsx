@@ -13,6 +13,7 @@ const dictionary = {
       follow: "Suivre",
       about: "À propos",
       contact: "Contact",
+      location: "Localisation",
     },
     lang: "عربي",
     hero: {
@@ -216,6 +217,7 @@ const dictionary = {
       follow: "التتبع",
       about: "من نحن",
       contact: "اتصل بنا",
+      location: "الموقع",
     },
     lang: "Français",
     hero: {
@@ -419,6 +421,7 @@ const dictionary = {
       follow: "Track",
       about: "About",
       contact: "Contact",
+      location: "Location",
     },
     lang: "English",
     hero: {
@@ -622,6 +625,7 @@ const dictionary = {
       follow: "Seguimiento",
       about: "Quiénes somos",
       contact: "Contacto",
+      location: "Ubicación",
     },
     lang: "Español",
     hero: {
