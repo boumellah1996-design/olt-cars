@@ -1,11 +1,30 @@
 import { NextResponse, type NextFetchEvent, type NextRequest } from "next/server";
 import { buildVisitLog, shouldLogPath } from "lib/visitor-log";
 
+function needsFreshVehicleData(pathname: string) {
+  return (
+    pathname === "/" ||
+    pathname.startsWith("/vehicles") ||
+    pathname.startsWith("/booking") ||
+    pathname.startsWith("/admin/vehicles") ||
+    pathname.startsWith("/api/vehicles")
+  );
+}
+
+function applyNoStore(response: NextResponse) {
+  response.headers.set("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0");
+  response.headers.set("CDN-Cache-Control", "no-store");
+  response.headers.set("Vercel-CDN-Cache-Control", "no-store");
+}
+
 export function middleware(request: NextRequest, event: NextFetchEvent) {
   const pathname = request.nextUrl.pathname;
-  if (request.method === "OPTIONS") return NextResponse.next();
-  if (request.headers.get("next-router-prefetch") === "1") return NextResponse.next();
-  if (!shouldLogPath(pathname)) return NextResponse.next();
+  const response = NextResponse.next();
+  if (needsFreshVehicleData(pathname)) applyNoStore(response);
+
+  if (request.method === "OPTIONS") return response;
+  if (request.headers.get("next-router-prefetch") === "1") return response;
+  if (!shouldLogPath(pathname)) return response;
 
   const visit = buildVisitLog(request);
   console.info(`[visit] ${visit.timestamp} ${visit.ip} ${visit.method} ${visit.path}`);
@@ -21,7 +40,7 @@ export function middleware(request: NextRequest, event: NextFetchEvent) {
       .catch(() => undefined),
   );
 
-  return NextResponse.next();
+  return response;
 }
 
 export const config = {

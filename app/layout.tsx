@@ -4,6 +4,10 @@ import { Providers } from "@/components/providers";
 import { SITE_URL } from "lib/site";
 import "./globals.css";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+export const fetchCache = "force-no-store";
+
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 const cairo = Cairo({ subsets: ["arabic", "latin"], variable: "--font-cairo" });
 

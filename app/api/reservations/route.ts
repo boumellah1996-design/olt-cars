@@ -3,6 +3,8 @@ import { listReservations, upsertReservation } from "lib/ops-server";
 import type { Reservation } from "lib/types";
 
 export const dynamic = "force-dynamic";
+export const revalidate = 0;
+export const fetchCache = "force-no-store";
 
 export function GET() {
   return NextResponse.json(listReservations(), {

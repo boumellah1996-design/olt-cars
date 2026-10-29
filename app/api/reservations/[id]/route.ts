@@ -3,6 +3,8 @@ import { patchReservation, upsertReservation } from "lib/ops-server";
 import type { Reservation } from "lib/types";
 
 export const dynamic = "force-dynamic";
+export const revalidate = 0;
+export const fetchCache = "force-no-store";
 
 export async function PATCH(request: Request, { params }: { params: { id: string } }) {
   const body = (await request.json()) as Partial<Reservation>;

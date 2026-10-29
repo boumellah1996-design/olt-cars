@@ -6,3 +6,4 @@ out
 .env*.local
 data/ops.json
 data/visits.json
+data/vehicles.json

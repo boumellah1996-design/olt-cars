@@ -1,7 +1,6 @@
 "use client";
 
-import { createContext, createElement, useContext, useMemo, useSyncExternalStore } from "react";
-import { initialState } from "./data";
+import { createContext, createElement, useContext, useEffect, useMemo, useSyncExternalStore } from "react";
 import { FALLBACK_VEHICLE_IMAGE } from "./images";
 import type { Fuel, Transmission, Vehicle, VehicleStatus } from "./types";
 import { uid } from "./utils";
@@ -58,7 +57,8 @@ export function normalizeVehicle(input: Partial<Vehicle> & Pick<Vehicle, "brand"
   };
 }
 
-const SERVER_FLEET: Vehicle[] = initialState.vehicles.map((item) => normalizeVehicle(item));
+const EMPTY_FLEET: Vehicle[] = [];
+let remoteHydrated = false;
 
 function readJson<T>(key: string): T | null {
   if (typeof window === "undefined") return null;
@@ -70,32 +70,18 @@ function readJson<T>(key: string): T | null {
   }
 }
 
-function mergeLists(...lists: Array<Vehicle[] | undefined>) {
-  const byId = new Map<string, Vehicle>();
-  for (const list of lists) {
-    for (const item of list || []) {
-      if (!item?.brand && !item?.model && !item?.id) continue;
-      const vehicle = normalizeVehicle(item);
-      byId.set(vehicle.id, vehicle);
-    }
-  }
-  const seedIds = new Set(initialState.vehicles.map((item) => item.id));
-  const all = Array.from(byId.values());
-  const added = all.filter((item) => !seedIds.has(item.id));
-  const rest = all.filter((item) => seedIds.has(item.id));
-  return [...added, ...rest];
+function asFleet(list: Vehicle[] | undefined) {
+  return (list || [])
+    .filter((item) => item?.id || item?.brand || item?.model)
+    .map((item) => normalizeVehicle(item));
 }
 
 function readStoredFleet() {
   const dedicated = readJson<Vehicle[]>(VEHICLES_KEY);
-  if (Array.isArray(dedicated)) {
-    return mergeLists(dedicated);
-  }
+  if (Array.isArray(dedicated)) return asFleet(dedicated);
   const nested = readJson<{ vehicles?: Vehicle[] }>(APP_STATE_KEY)?.vehicles;
-  if (Array.isArray(nested) && nested.length) {
-    return mergeLists(nested);
-  }
-  return initialState.vehicles.map((item) => normalizeVehicle(item));
+  if (Array.isArray(nested)) return asFleet(nested);
+  return [];
 }
 
 function notify() {
@@ -172,20 +158,68 @@ function bindGlobalSync() {
     const list = (event as CustomEvent<Vehicle[]>).detail;
     if (Array.isArray(list)) applyIncoming(list);
   });
+  window.addEventListener("focus", () => {
+    void pullRemoteFleet();
+  });
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible") void pullRemoteFleet();
+  });
 }
 
 bindGlobalSync();
 
 export function getFleet(): Vehicle[] {
   if (memory) return memory;
-  memory = typeof window === "undefined" ? SERVER_FLEET : readStoredFleet();
+  memory = typeof window === "undefined" ? EMPTY_FLEET : readStoredFleet();
   return memory;
 }
 
 export function setFleet(vehicles: Vehicle[]) {
   const next = applyIncoming(vehicles, true);
   broadcast(next);
+  syncFleetToApi(next);
   return next;
+}
+
+function syncFleetToApi(vehicles: Vehicle[]) {
+  if (typeof window === "undefined") return;
+  void fetch("/api/vehicles", {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(vehicles),
+    keepalive: true,
+    cache: "no-store",
+  }).catch(() => {
+    // Local fleet already holds the update.
+  });
+}
+
+export async function pullRemoteFleet() {
+  if (typeof window === "undefined") return getFleet();
+  try {
+    const stored = readJson<Vehicle[]>(VEHICLES_KEY);
+    if (Array.isArray(stored)) {
+      const local = asFleet(stored);
+      applyIncoming(local, false);
+      await fetch("/api/vehicles", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(local),
+        cache: "no-store",
+      });
+    }
+    const response = await fetch("/api/vehicles", { cache: "no-store" });
+    if (response.ok) {
+      const remote = (await response.json()) as Vehicle[];
+      if (Array.isArray(remote)) applyIncoming(asFleet(remote), true);
+    }
+  } catch {
+    if (!memory) applyIncoming(readStoredFleet(), false);
+  } finally {
+    remoteHydrated = true;
+    notify();
+  }
+  return getFleet();
 }
 
 export function addToFleet(vehicle: Vehicle) {
@@ -216,12 +250,20 @@ type FleetContextValue = {
 const FleetContext = createContext<FleetContextValue | null>(null);
 
 function useFleetSnapshot(): FleetContextValue {
-  const vehicles = useSyncExternalStore(subscribeFleet, getFleet, () => SERVER_FLEET);
-  return useMemo(() => ({ vehicles, ready: true }), [vehicles]);
+  const vehicles = useSyncExternalStore(subscribeFleet, getFleet, () => EMPTY_FLEET);
+  const ready = useSyncExternalStore(
+    subscribeFleet,
+    () => remoteHydrated,
+    () => false,
+  );
+  return useMemo(() => ({ vehicles, ready }), [vehicles, ready]);
 }
 
 export function FleetProvider({ children }: { children: React.ReactNode }) {
   const value = useFleetSnapshot();
+  useEffect(() => {
+    void pullRemoteFleet();
+  }, []);
   return createElement(FleetContext.Provider, { value }, children);
 }
 
