@@ -5,6 +5,7 @@ import { VehicleCard } from "@/components/frontend/VehicleCard";
 import { brandKey, useFleet } from "lib/fleet";
 import { useI18n } from "lib/i18n";
 import { useStore } from "lib/store";
+import type { Vehicle } from "lib/types";
 import { overlaps } from "lib/utils";
 import { cn } from "lib/utils";
 
@@ -13,15 +14,19 @@ export function VehicleGrid({
   endAt,
   pickupType,
   location,
+  initialVehicles,
 }: {
   startAt?: string;
   endAt?: string;
   pickupType?: string;
   location?: string;
+  initialVehicles?: Vehicle[];
 }) {
   const { t } = useI18n();
   const { state } = useStore();
-  const { vehicles: fleet, ready } = useFleet();
+  const { vehicles: live, ready } = useFleet();
+  const fleet = ready ? live : initialVehicles ?? live;
+  const waiting = !ready && !initialVehicles;
   const [brand, setBrand] = useState("all");
 
   const brands = useMemo(() => {
@@ -55,7 +60,7 @@ export function VehicleGrid({
     <section className="mx-auto max-w-6xl px-4 py-16">
       <div className="text-center">
         <h2 className="text-3xl font-black tracking-tight text-zinc-950 dark:text-white sm:text-4xl">{t.catalog.title}</h2>
-        <p className="mt-2 text-sm text-zinc-500">{ready ? t.catalog.subtitle(vehicles.length) : "…"}</p>
+        <p className="mt-2 text-sm text-zinc-500">{waiting ? "…" : t.catalog.subtitle(vehicles.length)}</p>
         <div className="mt-6 flex flex-wrap justify-center gap-2">
           <button
             type="button"
@@ -85,7 +90,7 @@ export function VehicleGrid({
         </div>
       </div>
 
-      {!ready ? (
+      {waiting ? (
         <p className="mt-12 text-center text-zinc-500">…</p>
       ) : vehicles.length === 0 ? (
         <p className="mt-12 text-center text-zinc-500">{t.catalog.empty}</p>

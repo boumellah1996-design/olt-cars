@@ -181,6 +181,8 @@ export function setFleet(vehicles: Vehicle[]) {
   return next;
 }
 
+const FLEET_FETCH = { cache: "no-store" as RequestCache, next: { revalidate: 0 } };
+
 function syncFleetToApi(vehicles: Vehicle[]) {
   if (typeof window === "undefined") return;
   void fetch("/api/vehicles", {
@@ -188,30 +190,29 @@ function syncFleetToApi(vehicles: Vehicle[]) {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(vehicles),
     keepalive: true,
-    cache: "no-store",
+    ...FLEET_FETCH,
   }).catch(() => {
     // Local fleet already holds the update.
   });
 }
 
+export function hydrateFleet(vehicles: Vehicle[]) {
+  if (!Array.isArray(vehicles)) return getFleet();
+  const next = applyIncoming(asFleet(vehicles), true);
+  remoteHydrated = true;
+  notify();
+  return next;
+}
+
 export async function pullRemoteFleet() {
   if (typeof window === "undefined") return getFleet();
   try {
-    const stored = readJson<Vehicle[]>(VEHICLES_KEY);
-    if (Array.isArray(stored)) {
-      const local = asFleet(stored);
-      applyIncoming(local, false);
-      await fetch("/api/vehicles", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(local),
-        cache: "no-store",
-      });
-    }
-    const response = await fetch("/api/vehicles", { cache: "no-store" });
+    const response = await fetch("/api/vehicles", FLEET_FETCH);
     if (response.ok) {
       const remote = (await response.json()) as Vehicle[];
       if (Array.isArray(remote)) applyIncoming(asFleet(remote), true);
+    } else if (!memory) {
+      applyIncoming(readStoredFleet(), false);
     }
   } catch {
     if (!memory) applyIncoming(readStoredFleet(), false);

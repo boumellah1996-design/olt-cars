@@ -1,3 +1,4 @@
+import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
 import { listVehicles, replaceVehicles } from "lib/fleet-server";
 import type { Vehicle } from "lib/types";
@@ -12,6 +13,14 @@ const NO_STORE = {
   "CDN-Cache-Control": "no-store",
   "Vercel-CDN-Cache-Control": "no-store",
 };
+
+function purgeVehicleCaches() {
+  revalidatePath("/", "layout");
+  revalidatePath("/vehicles", "layout");
+  revalidatePath("/vehicles", "page");
+  revalidatePath("/booking", "layout");
+  revalidatePath("/admin/vehicles", "layout");
+}
 
 export function GET() {
   return NextResponse.json(listVehicles(), { headers: NO_STORE });
@@ -35,5 +44,16 @@ export async function PUT(request: Request) {
   const saved = replaceVehicles(
     vehicles.filter((item) => item && typeof item.id === "string" && item.brand && item.model),
   );
+  purgeVehicleCaches();
+  return NextResponse.json(saved, { headers: NO_STORE });
+}
+
+export async function DELETE(request: Request) {
+  const id = new URL(request.url).searchParams.get("id");
+  if (!id) {
+    return NextResponse.json({ error: "Missing vehicle id" }, { status: 400, headers: NO_STORE });
+  }
+  const saved = replaceVehicles(listVehicles().filter((item) => item.id !== id));
+  purgeVehicleCaches();
   return NextResponse.json(saved, { headers: NO_STORE });
 }
